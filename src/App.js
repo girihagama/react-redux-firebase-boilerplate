@@ -13,12 +13,11 @@ import Dashboard from './components/layouts/dashboard';
 import Section from './components/layouts/section'
 
 class App extends Component {
-  
-  render() {
 
+  render() {
     //Protectig the component to prevent access without login
     const { auth } = this.props;
-    if(!auth.uid) return <Redirect to='/signin' />
+    if (!auth.uid) return <Redirect to='/signin' />
 
     return (
       <Container>
@@ -26,7 +25,7 @@ class App extends Component {
         {/* Define all main app components here */}
         <Switch>
           <Route path='/dashboard' component={Dashboard} />
-          <Route path='/section' component={Section} />
+          <Route path='/section' render={(props => <Section {...props} uid={this.props.auth.uid} />)} />
         </Switch>
       </Container>
     );
@@ -34,7 +33,7 @@ class App extends Component {
 }
 
 const mapStateToProps = (state) => {
-  console.log(state);
+  console.log("Main", state);
   return {
     auth: state.firebase.auth
   }

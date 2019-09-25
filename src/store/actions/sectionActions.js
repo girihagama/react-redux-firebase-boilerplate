@@ -4,12 +4,12 @@ export const createRecord = (record) => {
         const firestore = getFirestore();
         firestore.collection('records').add({
             ...record
-        }).then(()=> {
+        }).then(() => {
             dispatch({
                 type: 'CREATE_RECORD',
                 record
             });
-        }).catch((err)=>{
+        }).catch((err) => {
             dispatch({
                 type: 'CREATE_RECORD_ERROR',
                 err
