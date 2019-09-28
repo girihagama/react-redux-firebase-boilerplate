@@ -6,10 +6,10 @@ import { compose } from 'redux';
 import { firestoreConnect } from 'react-redux-firebase';
 
 import SideNav from '../../common/SideNav';
-import { sectionNavConfig } from '../../../config/navConfig';
+import { settingNavConfig } from '../../../config/navConfig';
 
-import CreateRecord from './CreateRecord';
-import ShowRecords from './ShowRecords';
+import AccessControlTemplate from './AccessControlTemplate';
+/* import ShowRecords from './ShowRecords'; */
 
 export class Section extends Component {
 
@@ -17,13 +17,15 @@ export class Section extends Component {
     return (
       <Grid>
         <Grid.Column width={3}>
-          <SideNav sideNavConfig={sectionNavConfig} />
+          <SideNav sideNavConfig={settingNavConfig} />
         </Grid.Column>
 
         <Grid.Column stretched width={13}>
           <Switch>
-            <Route path='/section/create' component={CreateRecord} />
-            <Route path='/section/show' render={(props => <ShowRecords /* {...props} */ uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
           </Switch>
         </Grid.Column>
       </Grid>

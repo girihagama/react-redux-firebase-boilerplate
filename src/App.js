@@ -11,6 +11,7 @@ import { MainNavConfig } from './config/navConfig';
 //Layout imports
 import Dashboard from './components/layouts/dashboard';
 import Section from './components/layouts/section'
+import Setting from './components/layouts/setting'
 
 class App extends Component {
 
@@ -26,6 +27,7 @@ class App extends Component {
         <Switch>
           <Route path='/dashboard' component={Dashboard} />
           <Route path='/section' render={(props => <Section {...props} uid={this.props.auth.uid} />)} />
+          <Route path='/setting' render={(props => <Setting {...props} uid={this.props.auth.uid} />)} />
         </Switch>
       </Container>
     );
