@@ -37,7 +37,7 @@ export const settingNavConfig = [
         menuHeader: 'Access',
         menuItems: [
             { name: 'Manage Access', link:'/setting/accessManagement'},        
-            { name: 'Define New Role', link:'/setting/newRole'},           
+            { name: 'Manage Role', link:'/setting/roleManagement'},           
             { name: 'Access Control Template', link:'/setting/accessControlTemplate'}           
         ]
     },

@@ -29,7 +29,7 @@ export class AccessControlTemplate extends Component {
 
         return (
             <Segment>
-                <Header as='h5'>All Access</Header>
+                <Header as='h5'>Access Conrol Template</Header>
 
                 {
                     (this.props.AccessControlTemplate)
