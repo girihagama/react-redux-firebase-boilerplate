@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Header, Button, Checkbox, Icon, Table, Menu, Popup } from 'semantic-ui-react';
+import { Segment, Header, Button, Checkbox, Accordion, Form, Input, Icon, List, Image } from 'semantic-ui-react';
 import { firestoreConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
@@ -7,162 +7,131 @@ import { allRoutes } from '../../../config/navConfig';
 
 import Loading from '../../../../src/resources/Loading.gif';
 
-export class ShowRecords extends Component {
+export class AccessControlTemplate extends Component {
+    state = { activeIndex: 0 }
+
     navigateToCreateRecord = () => {
         this.props.history.push(allRoutes.section.create);
     }
 
+    handleClick = (e, titleProps) => {
+        const { index } = titleProps
+        const { activeIndex } = this.state
+        const newIndex = activeIndex === index ? -1 : index
+
+        this.setState({ activeIndex: newIndex })
+    }
+
     render() {
         console.log(this.props);
-        var SectionAccess = (this.props.SectionAccess) ? this.props.SectionAccess : null;
+        const { activeIndex } = this.state
+        var orderedValues = [];
 
-        const { records } = this.props;
         return (
             <Segment>
-                <Header as='h5'>Records List</Header>
+                <Header as='h5'>All Access</Header>
 
                 {
-                    (SectionAccess)
-                        ? //SectionAccess available
+                    (this.props.AccessControlTemplate)
+                        ? //sectionData Loaded
+                        <Accordion fluid styled>
+                            {
+                                this.props.AccessControlTemplate.map((sectionData, ind) => {
+                                    return (
+                                        <div>
+                                            <Accordion.Title
+                                                active={activeIndex === ind}
+                                                index={ind}
+                                                onClick={this.handleClick}
+                                            >
+                                                <Icon name='dropdown' />
+                                                {sectionData.id}
+                                            </Accordion.Title>
+                                            <Accordion.Content active={activeIndex === ind} style={{ 'overflow': 'hidden', 'paddingBottom': '0px' }}>
+                                                {/* accordian content */}
 
-                        (SectionAccess.read)
-                            ? //read permission true
-                            <Table compact celled definition={(SectionAccess.multi_select)}>
-                                <Table.Header>
-                                    <Table.Row>
-                                        { //multi_select
-                                            (SectionAccess.multi_select)
-                                                ?
-                                                <Table.HeaderCell />
-                                                : ""
-                                        }
-                                        <Table.HeaderCell>Name</Table.HeaderCell>
-                                        <Table.HeaderCell>Gender</Table.HeaderCell>
-                                        <Table.HeaderCell>Size</Table.HeaderCell>
-                                        <Table.HeaderCell>About</Table.HeaderCell>
-                                        <Table.HeaderCell>Actions</Table.HeaderCell>
-                                    </Table.Row>
-                                </Table.Header>
-
-                                <Table.Body>
-                                    {
-                                        records && records.map((record) => {
-                                            var size = '';
-                                            switch (record.size) {
-                                                case 'sm':
-                                                    size = 'Small';
-                                                    break;
-                                                case 'md':
-                                                    size = 'Medium';
-                                                    break;
-                                                case 'lg':
-                                                    size = 'Large';
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                            return (
-                                                <Table.Row key={record.id}>
-                                                    { //multi_select
-                                                        (SectionAccess.multi_select)
-                                                            ?
-                                                            <Table.Cell collapsing>
-                                                                <Checkbox slider />
-                                                            </Table.Cell>
-                                                            : ""
+                                                <List divided verticalAlign='middle' size='mini'>
+                                                    {
+                                                        orderedValues = [],
+                                                        Object.keys(sectionData).forEach(function (key) {
+                                                            if (key !== 'id') {
+                                                                orderedValues.push([key, sectionData[key]]);
+                                                            }
+                                                        }),
+                                                        //console.log({orderedValues}),
+                                                        orderedValues.map((subSectionData, index) => {
+                                                            return (
+                                                                <List.Item style={{'overflow': 'hidden'}}>
+                                                                    <List.Content floated='right' style={{'padding':'0px'}}>
+                                                                        <Button.Group size='mini'>
+                                                                            <Button>Edit</Button>
+                                                                            <Button>Delete</Button>
+                                                                        </Button.Group>
+                                                                    </List.Content>
+                                                                    <List.Content style={{'padding':'0px'}}>
+                                                                        <h5 style={{'color':'blue'}}>{subSectionData[0]}</h5>
+                                                                    </List.Content>
+                                                                </List.Item>
+                                                            )
+                                                        })
                                                     }
-                                                    <Table.Cell>{record.firstName} {record.lastName}</Table.Cell>
-                                                    <Table.Cell>{record.gender}</Table.Cell>
-                                                    <Table.Cell>{size}</Table.Cell>
-                                                    <Table.Cell>{record.about}</Table.Cell>
-                                                    <Table.Cell>
-                                                        <Button.Group>
-                                                            { //update
-                                                                (SectionAccess.update)
-                                                                    ?
-                                                                    <Popup trigger={<Button compact icon><Icon name='check' /></Button>}>Approve</Popup>
-                                                                    : ""
-                                                            }
-                                                            { //read
-                                                                (SectionAccess.read)
-                                                                    ?
-                                                                    <Popup trigger={<Button compact icon><Icon name='file' /></Button>}>View</Popup>
-                                                                    : ""
-                                                            }
-                                                            { //update
-                                                                (SectionAccess.update)
-                                                                    ?
-                                                                    <Popup trigger={<Button compact icon><Icon name='edit' /></Button>}>Edit</Popup>
-                                                                    : ""
-                                                            }
-                                                            { //delete
-                                                                (SectionAccess.delete)
-                                                                    ?
-                                                                    <Popup trigger={<Button compact icon><Icon name='trash' /></Button>}>Delete</Popup>
-                                                                    : ""
-                                                            }
-                                                        </Button.Group>
-                                                    </Table.Cell>
-                                                </Table.Row>
-                                            )
-                                        })
-                                    }
-                                </Table.Body>
+                                                </List>
 
-                                <Table.Footer fullWidth>
-                                    <Table.Row>
-                                        <Table.HeaderCell />
-                                        <Table.HeaderCell colSpan='5'>
-                                            { //create
-                                                (SectionAccess.create)
-                                                    ?
-                                                    <Button floated='right' icon labelPosition='left' primary size='small' onClick={this.navigateToCreateRecord}>
-                                                        <Icon name='user' /> Add Record
-                                                    </Button>
-                                                    : ""
-                                            }
-                                            { //update
-                                                (SectionAccess.update && SectionAccess.multi_select)
-                                                    ?
-                                                    <Button size='small'>Approve Selected</Button>
-                                                    : ""
-                                            }
-                                            { //delete
-                                                (SectionAccess.delete && SectionAccess.multi_select)
-                                                    ?
-                                                    <Button size='small'>Delete Selected</Button>
-                                                    : ""
-                                            }
-                                        </Table.HeaderCell>
-                                    </Table.Row>
-                                    <Table.Row>
-                                        <Table.HeaderCell colSpan='6'>
-                                            <Menu floated='right' pagination>
-                                                <Menu.Item as='a' icon>
-                                                    <Icon name='chevron left' />
-                                                </Menu.Item>
-                                                <Menu.Item as='a'>1</Menu.Item>
-                                                <Menu.Item as='a'>2</Menu.Item>
-                                                <Menu.Item as='a'>3</Menu.Item>
-                                                <Menu.Item as='a'>4</Menu.Item>
-                                                <Menu.Item as='a' icon>
-                                                    <Icon name='chevron right' />
-                                                </Menu.Item>
-                                            </Menu>
-                                        </Table.HeaderCell>
-                                    </Table.Row>
-                                </Table.Footer>
-                            </Table>
-                            : //read permission false
-                            ""
+                                                <hr />
 
-                        : //SectionAccess not available
+                                                <div style={{ 'color': 'silver', 'padding': '10px' }}>
+                                                    <Form style={{ 'float': 'left' }}>
+                                                        <Form.Group inline widths='16'>
+                                                            <Form.Field>
+                                                                <label>Access Name</label>
+                                                                <Input size='mini' required placeholder='New access name' />
+                                                            </Form.Field>
+                                                            <Form.Field>
+                                                                <Button type='submit' size='mini' color='blue'>Submit</Button>
+                                                            </Form.Field>
+                                                        </Form.Group>
+                                                    </Form>
+
+                                                    <Button.Group floated='right' size='mini' color='red'>
+                                                        <Button>Delete: {sectionData.id}</Button>
+                                                    </Button.Group>
+                                                </div>
+                                            </Accordion.Content>
+                                        </div>
+                                    )
+                                })
+                            }
+
+                            {/* Add New */}
+                            <Accordion.Title
+                                active={activeIndex === this.props.AccessControlTemplate.length + 1}
+                                index={this.props.AccessControlTemplate.length + 1}
+                                onClick={this.handleClick}>
+                                <Icon name='dropdown' />
+                                <b style={{ "color": "red" }}>ADD NEW (<Icon name='add' />)</b>
+                            </Accordion.Title>
+                            <Accordion.Content active={activeIndex === this.props.AccessControlTemplate.length + 1}>
+                                <Form>
+                                    <Form.Group inline widths='16'>
+                                        <Form.Field>
+                                            <label>Section Name</label>
+                                            <Input required placeholder='New section name' />
+                                        </Form.Field>
+                                        <Form.Field>
+                                            <Button type='submit' color='blue'>Submit</Button>
+                                        </Form.Field>
+                                    </Form.Group>
+                                </Form>
+                            </Accordion.Content>
+
+                        </Accordion>
+                        : //Loading sectionData
                         <center>
                             <img style={{ "margin": "10px" }} src={Loading} alt="Loading" width="50" /><br />Loading
                         </center>
                 }
 
-            </Segment>
+            </Segment >
         )
     }
 }
@@ -170,8 +139,7 @@ export class ShowRecords extends Component {
 const mapStateToProps = (state) => {
     //console.log("STATE",state);
     return {
-        records: state.firestore.ordered.records,
-        SectionAccess: state.firestore.data.SectionAccess
+        AccessControlTemplate: state.firestore.ordered.AccessControlTemplate
     }
 }
 
@@ -185,17 +153,12 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect(props => [
         {
-            collection: 'records',
-        },
-        {
-            collection: 'system_access_group',
-            doc: props.access_role,
+            collection: 'system_access_control',
             includeDoc: true,
-            subcollections: [{ collection: 'system_access_control', doc: 'section' }],
-            storeAs: 'SectionAccess'
+            storeAs: 'AccessControlTemplate'
         }
     ])
-)(ShowRecords);
+)(AccessControlTemplate);
 
 
 /*

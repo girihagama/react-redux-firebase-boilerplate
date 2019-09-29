@@ -9,6 +9,8 @@ import SideNav from '../../common/SideNav';
 import { settingNavConfig } from '../../../config/navConfig';
 
 import AccessControlTemplate from './AccessControlTemplate';
+import DefineRole from './DefineRole';
+import ManageAccess from './ManageAccess';
 /* import ShowRecords from './ShowRecords'; */
 
 export class Section extends Component {
@@ -22,9 +24,8 @@ export class Section extends Component {
 
         <Grid.Column stretched width={13}>
           <Switch>
-            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
-            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
-            <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/accessManagement' render={(props => <ManageAccess uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
+            <Route path='/setting/newRole' render={(props => <DefineRole uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
             <Route path='/setting/accessControlTemplate' render={(props => <AccessControlTemplate uid={this.props.Access.uid} access_role={this.props.Access.role} />)} />
           </Switch>
         </Grid.Column>
