@@ -5,20 +5,24 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { allRoutes } from '../../../config/navConfig';
 
+import { loadAccessGroup, createAccessGroup, updateAccessGroup } from '../../../store/actions/settingAction';
+
 import Loading from '../../../../src/resources/Loading.gif';
 
-export class ShowRecords extends Component {
+export class ManageRole extends Component {
+    constructor(props) {
+        super(props);
+        this.roleNameInput = React.createRef();
+    }
+
     state = {
         activeIndex: -1,
         selectedRole: "",
         activeAction: null, //null, create, update
         activeActionName: 'Active Role',
         activeActionPlacceholder: 'None',
-        allAccess: {
-            a: {
-                b: true
-            }
-        }
+        roleName: '',
+        allAccess: null
     }
 
     handleClick = (e, titleProps) => {
@@ -34,7 +38,6 @@ export class ShowRecords extends Component {
     }
 
     addNewRole() {
-        console.log('clicked');
         this.setState({
             activeAction: 'create',
             activeActionName: 'Role Name',
@@ -57,20 +60,74 @@ export class ShowRecords extends Component {
                 activeActionName: 'Editing Role',
                 activeActionPlacceholder: value
             });
+            this.loadSelectedRole(value);
         }
     }
 
-    toggle(a, b) {
-        console.log(a, b);
+    loadSelectedRole(role) {
+        this.props.loadAccessGroup({ roleName: role, template: this.state.allAccess });
     }
 
-    render() {
-        const { activeIndex } = this.state
-        console.log(this.props);
-        console.log(this.state);
-        var subSections = [];
+    checkedChanged(MainSection, SubSection) {
+        var data = null;
+        //console.log(MainSection, SubSection);
+        if (this.state.allAccess !== null) {
+            data = this.state.allAccess;
+            var current = data[MainSection][SubSection];
+            data[MainSection][SubSection] = !current;
+            this.setState({ allAccess: data });
+        } else {
+            data = this.props.AccessTemplate;
+            data[MainSection][SubSection] = true;
+            this.setState({ allAccess: data });
+        }
+    }
 
-        var temp = [];
+    submitChanges() {
+        //console.log("changes", this.state);
+        if (this.state.activeAction == "create") {
+            this.createNew(this.state.allAccess, this.state.roleName);
+        } else if (this.state.activeAction == "update") {
+            this.updateExisting(this.state.allAccess, this.state.selectedRole);
+        }
+    }
+
+    createNew(record, name) {
+        if (this.name) {
+            this.props.createAccessGroup({ record, name });
+        } else {
+            this.roleNameInput.current.focus();
+        }
+    }
+
+    updateExisting(record, name) {
+        this.props.updateAccessGroup({ record, name });
+    }
+
+    isEmpty(obj) {
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))
+                return false;
+        }
+        return true;
+    }
+
+    /*----------- Life Cycle -------------*/
+    componentDidUpdate() {
+        if (this.state.allAccess == null && !this.isEmpty(this.props.AccessTemplate)) {
+            this.setState({
+                allAccess: this.props.AccessTemplate
+            });
+        }
+    }
+    /*----------- Life Cycle -------------*/
+
+    render() {
+        const { activeIndex } = this.state;
+
+        console.log("Props", this.props);
+        console.log("State", this.state);
+        var subSections = [];
 
         const { records } = this.props;
         return (
@@ -85,10 +142,17 @@ export class ShowRecords extends Component {
                                 label={{ basic: true, content: this.state.activeActionName }}
                                 labelPosition='left'
                                 size='small'
+                                ref={this.roleNameInput}
                                 placeholder={this.state.activeActionPlacceholder}
                                 disabled={(this.state.activeAction && this.state.activeAction === 'create') ? false : true}
                                 floated='left'
-                                error={false}
+                                error={((this.state.roleName === "" && this.state.activeAction === "create") || (this.state.selectedRole === "" && this.state.activeAction === "update")) ? true : false}
+                                value={this.state.roleName}
+                                onChange={(e) => {
+                                    var roleName = (e.target.value).replace(/[^A-Z0-9]+/ig, "");
+                                    roleName = roleName.charAt(0).toLowerCase() + roleName.slice(1);
+                                    this.setState({ roleName });
+                                }}
                             />
                             : ""
                     }
@@ -129,7 +193,7 @@ export class ShowRecords extends Component {
                     }
 
                     {
-                        (this.state.activeAction !== 'create' && this.state.activeAction !== 'update')
+                        (this.state.allAccess && (this.state.activeAction !== 'create' && this.state.activeAction !== 'update'))
                             ?
                             <Button animated='fade' color='blue' size='small' floated='right' onClick={this.addNewRole.bind(this)}>
                                 <Button.Content visible>Add New Role</Button.Content>
@@ -169,62 +233,78 @@ export class ShowRecords extends Component {
                                     <span style={{ border: 'solid 1px rgba(0, 0, 0, 0.2)', padding: '5px', borderRadius: '5px', backgroundColor: 'silver', opacity: '0.8', margin: '0px 5px 0px 5px' }}>Load Existing Role</span>                                    to update.</h3>
                             </center>
                             :
-                            <Accordion fluid styled activeIndex={-1}>
-                                {
-                                    this.props.AccessControlTemplate.map((sectionData, ind) => {
-                                        return (
-                                            <div>
-                                                <Accordion.Title
-                                                    active={activeIndex === ind}
-                                                    index={ind}
-                                                    onClick={this.handleClick}
-                                                >
-                                                    <Icon name='dropdown' />
-                                                    {sectionData.id}
-                                                </Accordion.Title>
-                                                <Accordion.Content key={ind} active={activeIndex === ind} style={{ 'overflow': 'hidden' }}>
-                                                    {/* accordian content */}
+                            (this.props.AccessControlTemplate)
+                                ?
+                                <Accordion fluid styled /* activeIndex={-1} */>
+                                    {
+                                        this.props.AccessControlTemplate.map((sectionData, ind) => {
+                                            return (
+                                                <div key={ind}>
+                                                    <Accordion.Title
+                                                        active={activeIndex === ind}
+                                                        index={ind}
+                                                        onClick={this.handleClick}
+                                                    >
+                                                        <Icon name='dropdown' />
+                                                        {sectionData.id}
+                                                    </Accordion.Title>
+                                                    <Accordion.Content key={ind} active={activeIndex === ind} style={{ 'overflow': 'hidden' }}>
+                                                        {/* accordian content */}
 
-                                                    <List relaxed verticalAlign='middle' size='mini'>
-                                                        {
-                                                            subSections = [],
-                                                            Object.keys(sectionData).forEach(function (key) {
-                                                                if (key !== 'id') {
-                                                                    subSections.push([key, sectionData[key]]);
-                                                                }
-                                                            }),
-                                                            //console.log({orderedValues}),
-                                                            subSections.map((subSectionData, index) => {
-                                                                return (
-                                                                    <List.Item key={index} style={{ 'overflow': 'hidden' }}>
-                                                                        <List.Content style={{ 'padding': '10px' }}>
-                                                                            <Checkbox key={sectionData.id, subSectionData[0]} label={subSectionData[0]} onChange={this.toggle(sectionData.id, subSectionData[0])} />
-                                                                        </List.Content>
-                                                                    </List.Item>
-                                                                )
-                                                            })
-                                                        }
-                                                    </List>
+                                                        <List relaxed verticalAlign='middle' size='mini'>
+                                                            {
+                                                                subSections = [],
 
-                                                </Accordion.Content>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </Accordion>
+                                                                Object.keys(sectionData).forEach(function (key) {
+                                                                    if (key !== 'id') {
+                                                                        subSections.push([key, sectionData[key]]);
+                                                                    }
+                                                                }),
 
+                                                                //console.log({orderedValues}),
+                                                                subSections.map((subSectionData, index) => {
+
+                                                                    var value = false;
+                                                                    var sd = sectionData.id;
+                                                                    var ssd = subSectionData[0];
+                                                                    var ssv = subSectionData[1];
+
+                                                                    if (this.state.allAccess !== {} && this.state.allAccess[sd][ssd]) {
+                                                                        value = this.state.allAccess[sd][ssd];
+                                                                    }
+
+                                                                    return (
+                                                                        <List.Item key={index} style={{ 'overflow': 'hidden' }}>
+                                                                            <List.Content style={{ 'padding': '10px' }}>
+                                                                                <Checkbox /* defaultChecked={false} */ checked={value} key={sectionData.id, subSectionData[0]} label={subSectionData[0]} onChange={(e) => {
+                                                                                    this.checkedChanged(sectionData.id, subSectionData[0]);
+                                                                                }} />
+                                                                            </List.Content>
+                                                                        </List.Item>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </List>
+
+                                                    </Accordion.Content>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </Accordion>
+                                : ""
                     }
                 </div>
 
                 {
-                    (this.state.activeAction && (this.state.activeAction === 'create' || this.state.activeAction === 'update'))
+                    (this.state.activeAction && !this.isEmpty(this.state.allAccess) && (this.state.activeAction === 'create' || this.state.activeAction === 'update'))
                         ?
                         <div>
                             <br />
                             <Button.Group floated='right'>
                                 <Button onClick={() => { this.setState({ activeAction: null, activeActionName: 'Active Role', activeActionPlacceholder: 'None', selectedRole: '' }) }}>Discard</Button>
                                 <Button.Or />
-                                <Button positive>Save</Button>
+                                <Button positive onClick={(this.submitChanges).bind(this)}>Save</Button>
                             </Button.Group>
                         </div>
                         : ""
@@ -238,6 +318,19 @@ export class ShowRecords extends Component {
 const mapStateToProps = (state) => {
     //console.log("STATE",state);
 
+    var accessTemplate = {}
+    if (state.firestore.ordered.AccessControlTemplate) {
+        (state.firestore.ordered.AccessControlTemplate).map(level1 => {
+            accessTemplate[level1.id] = {}
+            Object.keys(level1).forEach(function (key) {
+                if (key !== 'id') {
+                    //console.log(key, level1[key]);
+                    accessTemplate[level1.id][key] = level1[key];
+                }
+            });
+        })
+    }
+
     var accessRoles = [];
     if (state.firestore.ordered.CurrentAccessRoles) {
         (state.firestore.ordered.CurrentAccessRoles).map(value => {
@@ -247,13 +340,16 @@ const mapStateToProps = (state) => {
 
     return {
         AccessControlTemplate: state.firestore.ordered.AccessControlTemplate,
-        CurrentAccessRoles: accessRoles
+        CurrentAccessRoles: accessRoles,
+        AccessTemplate: accessTemplate
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-
+        loadAccessGroup: (record) => dispatch(loadAccessGroup(record)),
+        createAccessGroup: (record) => dispatch(createAccessGroup(record)),
+        updateAccessGroup: (record) => dispatch(updateAccessGroup(record)),
     }
 }
 
@@ -270,14 +366,4 @@ export default compose(
             storeAs: 'CurrentAccessRoles'
         }
     ])
-)(ShowRecords);
-
-
-/*
-Pending development
-
-1. Dynamic pagination options
-2. FSS
-3. Action buttons
-
-*/
+)(ManageRole);

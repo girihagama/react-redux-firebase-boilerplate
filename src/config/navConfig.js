@@ -36,9 +36,15 @@ export const settingNavConfig = [
     { 
         menuHeader: 'Access',
         menuItems: [
-            { name: 'Manage Access', link:'/setting/accessManagement'},        
-            { name: 'Manage Role', link:'/setting/roleManagement'},           
-            { name: 'Access Control Template', link:'/setting/accessControlTemplate'}           
+            //{ name: 'Assign', link:'/setting/accessManagement'},        
+            { name: 'Roles', link:'/setting/roleManagement'},           
+            //{ name: 'Access Control Template', link:'/setting/accessControlTemplate'}           
+        ]
+    },
+    { 
+        menuHeader: 'Members',
+        menuItems: [
+            { name: 'Invitations', link:'/setting/invitations'},        
         ]
     },
     { 
