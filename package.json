@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "deepmerge": "^4.0.0",
     "firebase": "^5.8.1",
+    "lodash": "^4.17.15",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-redux": "^5.1.1",

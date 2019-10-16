@@ -4,6 +4,7 @@ import { firestoreConnect } from 'react-redux-firebase';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { allRoutes } from '../../../config/navConfig';
+import _ from 'lodash';
 
 import { loadAccessGroup, createAccessGroup, updateAccessGroup } from '../../../store/actions/settingAction';
 
@@ -13,6 +14,7 @@ export class ManageRole extends Component {
     constructor(props) {
         super(props);
         this.roleNameInput = React.createRef();
+        this.nameInputWarning = React.createRef();
     }
 
     state = {
@@ -22,7 +24,13 @@ export class ManageRole extends Component {
         activeActionName: 'Active Role',
         activeActionPlacceholder: 'None',
         roleName: '',
-        allAccess: null
+        allAccess: null,
+        nameInputWarning: false
+    }
+
+    //refresh
+    navigateToManageRole() {
+        window.location.reload();
     }
 
     handleClick = (e, titleProps) => {
@@ -33,15 +41,12 @@ export class ManageRole extends Component {
         this.setState({ activeIndex: newIndex })
     }
 
-    navigateToCreateRecord = () => {
-        this.props.history.push(allRoutes.section.create);
-    }
-
     addNewRole() {
         this.setState({
             activeAction: 'create',
             activeActionName: 'Role Name',
             activeActionPlacceholder: 'Provde a name',
+            nameInputWarning: false
         });
     }
 
@@ -93,10 +98,14 @@ export class ManageRole extends Component {
     }
 
     createNew(record, name) {
-        if (this.name) {
-            this.props.createAccessGroup({ record, name });
-        } else {
+        if (!name) {
             this.roleNameInput.current.focus();
+            this.setState({
+                nameInputWarning: true
+            });
+            return;
+        } else {
+            this.props.createAccessGroup({ name, record });
         }
     }
 
@@ -117,6 +126,14 @@ export class ManageRole extends Component {
         if (this.state.allAccess == null && !this.isEmpty(this.props.AccessTemplate)) {
             this.setState({
                 allAccess: this.props.AccessTemplate
+            });
+        }
+
+        //console.log(this.state.allAccess != {}, !this.isEmpty(this.props.AccessTemplate), !this.isEmpty(this.props.LoadAccessGroup), _.isEqual(this.state.allAccess, this.props.LoadAccessGroup));
+
+        if (this.activeAction === "update" && this.state.allAccess != {} && !this.isEmpty(this.props.AccessTemplate) && !this.isEmpty(this.props.LoadAccessGroup) && !_.isEqual(this.state.allAccess, this.props.LoadAccessGroup)) {
+            this.setState({
+                allAccess: this.props.LoadAccessGroup
             });
         }
     }
@@ -151,7 +168,7 @@ export class ManageRole extends Component {
                                 onChange={(e) => {
                                     var roleName = (e.target.value).replace(/[^A-Z0-9]+/ig, "");
                                     roleName = roleName.charAt(0).toLowerCase() + roleName.slice(1);
-                                    this.setState({ roleName });
+                                    this.setState({ roleName, nameInputWarning: false });
                                 }}
                             />
                             : ""
@@ -160,7 +177,17 @@ export class ManageRole extends Component {
                     { //cancel editing
                         (this.state.activeAction === 'update')
                             ?
-                            <Button style={{ backgroundColor: 'white' }} circular animated size='small' onClick={() => { this.setState({ activeAction: null, activeActionName: 'Active Role', activeActionPlacceholder: 'None', selectedRole: '' }) }}>
+                            <Button style={{ backgroundColor: 'white' }} circular animated size='small'
+                                onClick={
+                                    () => {
+                                        this.setState({
+                                            activeAction: null,
+                                            activeActionName: 'Active Role',
+                                            activeActionPlacceholder: 'None',
+                                            selectedRole: '',
+                                            allAccess: this.props.AccessTemplate
+                                        });
+                                    }}>
                                 <Button.Content visible>Clear</Button.Content>
                                 <Button.Content hidden>
                                     <Icon name='close' />
@@ -207,6 +234,11 @@ export class ManageRole extends Component {
                     }
                 </div>
 
+                <Message warning hidden={(this.state.activeAction === "create" && this.state.nameInputWarning === true) ? false : true}>
+                    <Message.Header>Please Provide a Name!</Message.Header>
+                    <p>You must enter a name for create this role.</p>
+                </Message>
+
                 {
                     (this.state.activeAction && this.state.activeAction === 'create')
                         ?
@@ -219,6 +251,17 @@ export class ManageRole extends Component {
                             </Message.List>
                         </Message>
                         : ""
+                }
+
+                {(!this.props.CreateAccessGroup_result)
+                    ?
+                    ""
+                    :
+                    <Message
+                        hidden={(this.props.CreateAccessGroup_result.action === true) ? false : true}
+                        header='Welcome back!'
+                        content='This is a special notification which you can dismiss.'
+                    />
                 }
 
                 <div style={{ paddingTop: '10px' }}>
@@ -302,7 +345,7 @@ export class ManageRole extends Component {
                         <div>
                             <br />
                             <Button.Group floated='right'>
-                                <Button onClick={() => { this.setState({ activeAction: null, activeActionName: 'Active Role', activeActionPlacceholder: 'None', selectedRole: '' }) }}>Discard</Button>
+                                <Button onClick={() => { this.setState({ activeAction: null, activeActionName: 'Active Role', activeActionPlacceholder: 'None', selectedRole: '', nameInputWarning: false, roleName: '' }) }}>Discard</Button>
                                 <Button.Or />
                                 <Button positive onClick={(this.submitChanges).bind(this)}>Save</Button>
                             </Button.Group>
@@ -338,10 +381,22 @@ const mapStateToProps = (state) => {
         });
     }
 
+    var loadAccessGroup = {}
+    if (state.setting.LOAD_ACCESS_GROUP && state.setting.LOAD_ACCESS_GROUP.actionResult) {
+        var match = accessTemplate;
+        const merge = require('deepmerge');
+
+        loadAccessGroup = merge(accessTemplate, state.setting.LOAD_ACCESS_GROUP.actionResult, []);
+    }
+
     return {
         AccessControlTemplate: state.firestore.ordered.AccessControlTemplate,
         CurrentAccessRoles: accessRoles,
-        AccessTemplate: accessTemplate
+        AccessTemplate: accessTemplate,
+        LoadAccessGroup: loadAccessGroup,
+        LoadAccessGroup_result: state.setting.LOAD_ACCESS_GROUP,
+        CreateAccessGroup_result: state.setting.CREATE_ACCESS_GROUP,
+        UpdateAccessGroup_result: state.setting.UPDATE_ACCESS_GROUP
     }
 }
 

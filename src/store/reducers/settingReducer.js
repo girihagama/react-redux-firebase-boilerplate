@@ -12,21 +12,35 @@ const settingReducer = (state = initState, action) => {
             return state;
         case 'LOAD_ACCESS_GROUP_SUCCESS':
             console.log('Access Group Loaded', action);
-            return state;
+            delete action.type;
+            return {
+                ...state,
+                LOAD_ACCESS_GROUP: action
+            };
         case 'LOAD_ACCESS_GROUP_FAILED':
             console.log('Failed To Load Access Group', action);
+            delete action.type;
             return state;
         case 'CREATE_ACCESS_GROUP_SUCCESS':
             console.log('CREATE_ACCESS_GROUP_SUCCESS', action);
+            delete action.type;
             return {
                 ...state,
-                CREATE_ACCESS_GROUP : action
+                CREATE_ACCESS_GROUP: action
+            };
+        case 'CREATE_ACCESS_GROUP_FAILED':
+            console.log('CREATE_ACCESS_GROUP_FAILED', action);
+            delete action.type;
+            return {
+                ...state,
+                CREATE_ACCESS_GROUP: action
             };
         case 'UPDATE_ACCESS_GROUP_SUCCESS':
             console.log('UPDATE_ACCESS_GROUP_SUCCESS', action);
+            delete action.type;
             return {
                 ...state,
-                UPDATE_ACCESS_GROUP : action
+                UPDATE_ACCESS_GROUP: action
             };
         default:
             return state;

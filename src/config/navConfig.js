@@ -3,6 +3,9 @@
 export const allRoutes = {
     section: {
         create: '/section/create'
+    },
+    system_setting:{
+        manageRole : '/setting/roleManagement'
     }
 }
 
